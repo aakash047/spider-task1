@@ -27,15 +27,6 @@ for line in "${user_data[@]}"; do
         continue
     fi
 
-    # Create user
-    useradd -m -d "$base_dir/$username" -g john.doe "$username"
-    if [[ $? -ne 0 ]]; then
-        error_message="Error: Failed to create user '$username'"
-        echo "$error_message"
-        log_message "$error_message"
-        continue
-    fi
-
     # Create group if it doesn't exist
     if ! getent group "$group" > /dev/null; then
         groupadd "$group"
@@ -45,6 +36,15 @@ for line in "${user_data[@]}"; do
             log_message "$error_message"
             continue
         fi
+    fi
+
+    # Create user
+    useradd -m -d "$base_dir/$username" "$username"
+    if [[ $? -ne 0 ]]; then
+        error_message="Error: Failed to create user '$username'"
+        echo "$error_message"
+        log_message "$error_message"
+        continue
     fi
 
     # Assign user to specified group
@@ -59,7 +59,7 @@ for line in "${user_data[@]}"; do
     log_message "Assigned user '$username' to group '$group'"
 
     # Set permissions for user's home directory
-    chmod "$permission" "$base_dir/$username"
+    chmod -R "$permission" "$base_dir/$username"
     if [[ $? -ne 0 ]]; then
         error_message="Error: Failed to set permissions '$permission' for user '$username' home directory"
         echo "$error_message"
